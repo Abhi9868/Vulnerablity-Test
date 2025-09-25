@@ -1,22 +1,25 @@
 
-def vulnerable_sql_injection(user_id):
-    """CWE-89: SQL Injection"""
+import sqlite3
+from flask import request
+
+def secure_sql_query(user_id):
+    """Secure SQL Query Execution"""
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    
-    # VULNERABLE: Direct string concatenation
-    query = f"SELECT * FROM users WHERE id = {user_id}"
-    cursor.execute(query)
-    
-    # VULNERABLE: String formatting
-    query2 = "SELECT * FROM users WHERE name = '%s'" % user_id
-    cursor.execute(query2)
-    
-    # VULNERABLE: f-string formatting
+
+    # Secure: Using parameterized queries
+    query = "SELECT * FROM users WHERE id = ?"
+    cursor.execute(query, (user_id,))
+
+    # Secure: Using parameterized queries
+    query2 = "SELECT * FROM users WHERE name = ?"
+    cursor.execute(query2, (user_id,))
+
+    # Secure: Using parameterized queries
     username = request.args.get('username')
-    query3 = f"SELECT * FROM accounts WHERE username = '{username}'"
-    cursor.execute(query3)
-    
+    query3 = "SELECT * FROM accounts WHERE username = ?"
+    cursor.execute(query3, (username,))
+
     return cursor.fetchall()
 
 def vulnerable_sql_injection_order_by(sort_column):
