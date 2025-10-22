@@ -1,23 +1,26 @@
 
-def vulnerable_sql_injection(user_id):
-    """CWE-89: SQL Injection"""
+import sqlite3
+from flask import request
+
+def secure_sql_query(user_id):
+    """Secure version: Prevents SQL Injection by using parameterized queries."""
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    
-    # VULNERABLE: Direct string concatenation
-    query = f"SELECT * FROM users WHERE id = {user_id}"
-    cursor.execute(query)
-    
-    # VULNERABLE: String formatting
-    query2 = "SELECT * FROM users WHERE name = '%s'" % user_id
-    cursor.execute(query2)
-    
-    # VULNERABLE: f-string formatting
+
+    # FIX: Use parameterized queries for all user input
+    query = "SELECT * FROM users WHERE id = ?"
+    cursor.execute(query, (user_id,))
+
+    query2 = "SELECT * FROM users WHERE name = ?"
+    cursor.execute(query2, (user_id,))
+
     username = request.args.get('username')
-    query3 = f"SELECT * FROM accounts WHERE username = '{username}'"
-    cursor.execute(query3)
-    
+    query3 = "SELECT * FROM accounts WHERE username = ?"
+    cursor.execute(query3, (username,))
+
     return cursor.fetchall()
+
+# FIX EXPLANATION: All SQL queries now use parameterized statements (the '?' placeholder with a tuple of parameters). This ensures user input is never directly interpolated into the SQL string, preventing attackers from injecting malicious SQL code. This is the recommended best practice for all SQL queries involving user input in Python's sqlite3 module.
 
 def vulnerable_sql_injection_order_by(sort_column):
     """CWE-89: SQL Injection in ORDER BY"""
